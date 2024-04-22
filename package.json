@@ -1,0 +1,22 @@
+{
+  "name": "vue-realize",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.js reactivity -f cjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "vue": "^3.4.23"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "esbuild": "^0.20.2",
+    "minimist": "^1.2.8",
+    "typecript": "0.0.1-security"
+  }
+}
