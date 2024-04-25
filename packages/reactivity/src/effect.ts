@@ -13,6 +13,7 @@ export class ReactiveEffect<T = any> {
   parent: any[] | undefined
   constructor(
     public fn: () => T,
+    //@ts-ignore
     private scheduler?: () => T
   ) {
 

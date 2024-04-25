@@ -5,6 +5,10 @@ export enum ReactiveFlags {
   IS_REACTIVE = '__v_isReactive', //judge if is reactive proxy
 }
 
+export function isReactive(target) {
+  return !!(target && target[ReactiveFlags.IS_REACTIVE])
+}
+
 const reactiveMap = new WeakMap();
 
 export function reactive(target: Object){
