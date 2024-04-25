@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@vue/reactivity':
+        specifier: ^3.4.23
+        version: 3.4.23
       vue:
         specifier: ^3.4.23
         version: 3.4.23

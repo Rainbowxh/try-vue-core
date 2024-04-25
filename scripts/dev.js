@@ -31,10 +31,7 @@ esbuild
   platform: format === 'cjs' ? 'node' : 'browser',
 })
 .then(ctx =>  {
-  ctx.watch().then(() => {
-    console.log('outfile is',outfile)
-    process.exit(0);
-  })
+  ctx.watch()
 })
 
 
