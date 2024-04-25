@@ -3,8 +3,13 @@ import { ReactiveEffect } from "./effect";
 import { isReactive } from "./reactive";
 
 export function watch(source, cb, options) {
-  return doWatch(source, cb, options)
+  return doWatch(source, cb, options || {})
 }
+
+export function watchEffect(effect,options?: any) {
+  return doWatch(effect, null, options || {})
+}
+
 
 function doWatch(source, cb, { immediate = false, deep = false }) {
   let getter;
@@ -18,15 +23,23 @@ function doWatch(source, cb, { immediate = false, deep = false }) {
     getter = source;
   }
 
+  let oldValue;
+  let cleanup;
   const scheduler = () => {
-    const newValue = effect.run();
-    cb(newValue, oldValue);
-    oldValue = newValue;
+    if(cb) {
+      const newValue = effect.run();
+      if(cleanup) cleanup();
+      cb(newValue, oldValue, (onCleanup) => cleanup = onCleanup);
+      oldValue = newValue;
+    }else {
+      // watchEffect
+      effect.run();
+    }
   }
 
   const effect = new ReactiveEffect(getter, scheduler)
 
-  let oldValue = effect.run();
+  oldValue = effect.run();
 
   if (immediate) {
    scheduler();
