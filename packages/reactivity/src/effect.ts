@@ -7,13 +7,13 @@ export function effect(fn: () => any, options: any = {}) {
   return runner;
 }
 
-class ReactiveEffect<T = any> {
+export class ReactiveEffect<T = any> {
   active = true
   deps: any[] = []
   parent: any[] | undefined
   constructor(
     public fn: () => T,
-    private scheduler:()=>T
+    private scheduler?: () => T
   ) {
 
   }
@@ -33,7 +33,7 @@ class ReactiveEffect<T = any> {
     }
   }
   stop() {
-    if(this.active) {
+    if (this.active) {
       // clean all deps;
       cleanupEffect(this);
       // do not active again;
@@ -44,7 +44,7 @@ class ReactiveEffect<T = any> {
 
 function cleanupEffect(effect: ReactiveEffect) {
   const { deps } = effect;
-  for(let i = 0; i < deps.length; i ++) {
+  for (let i = 0; i < deps.length; i++) {
     const dep = deps[i];
     dep.delete(effect);
   }
@@ -54,41 +54,46 @@ function cleanupEffect(effect: ReactiveEffect) {
 const targetMap = new WeakMap();
 
 
-export function trackEffect(target, key) {
-
-  if(!activeEffect) return;
+export function track(target, key?: string) {
+  if (!activeEffect) return;
   let depsMap = targetMap.get(target);
-  if(!depsMap) {
+  if (!depsMap) {
     targetMap.set(target, (depsMap = new Map()))
   }
   let dep = depsMap.get(key);
-  if(!dep) {
-    depsMap.set(key,(dep = new Set()))
+  if (!dep) {
+    depsMap.set(key, (dep = new Set()))
   }
+
+  trackEffect(dep);
+}
+
+export function trackEffect(dep) {
   let shouldTrack = !dep.has(activeEffect)
-  if(shouldTrack) {
+  if (shouldTrack) {
     dep.add(activeEffect)
     activeEffect.deps.push(dep)
   }
 }
 
-export function triggerEffect(target,key,value,oldValue) {
-    const depsMap = targetMap.get(target);
+export function trigger(target, key?: string, value?: any, oldValue?: any) {
+  const depsMap = targetMap.get(target);
+  if (!depsMap) return;
+  const dep = depsMap.get(key);
+  if (dep) {
+    triggerEffect(dep);
+  }
+}
 
-    if(!depsMap) return;
-
-    const dep = depsMap.get(key);
-    if(dep) {
-      const newDep = new Set<any>(dep);
-      newDep.forEach(effect => {
-        if(effect !== activeEffect) {
-          if(!effect.scheduler) {
-            effect.run()
-          }else {
-            effect.scheduler();
-          }
-        }
-      });
+export function triggerEffect(dep) {
+  const effects = [...dep];
+  effects.forEach(effect => {
+    if (effect !== activeEffect) {
+      if (!effect.scheduler) {
+        effect.run()
+      } else {
+        effect.scheduler();
+      }
     }
-
+  });
 }

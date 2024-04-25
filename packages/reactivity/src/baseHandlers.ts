@@ -1,4 +1,4 @@
-import { ReactiveFlags, reactive, trackEffect, triggerEffect } from "@vue/reactivity";
+import { ReactiveFlags, reactive, track, trigger } from "@vue/reactivity";
 import { isObject } from "@vue/shared";
 
 
@@ -8,19 +8,22 @@ export const mutableHandlers = {
     if(ReactiveFlags.IS_REACTIVE === key) {
       return true;
     }
-    trackEffect(target,key)
+
+    track(target,key)
 
     const result = Reflect.get(target,key,receiver)
+
     if(isObject(result)){ 
       return reactive(result)
     }
+    
     return result
   },
   set(target, key, value ,receiver) {
     const oldValue = target[key]
     const result = Reflect.set(target,key,value,receiver)
     if(oldValue !== value) {
-      triggerEffect(target,key,value,oldValue)
+      trigger(target,key,value,oldValue)
     }
     return result;
   }
