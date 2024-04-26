@@ -54,7 +54,6 @@ function cleanupEffect(effect: ReactiveEffect) {
 
 const targetMap = new WeakMap();
 
-
 export function track(target, key?: string) {
   if (!activeEffect) return;
   let depsMap = targetMap.get(target);
@@ -65,11 +64,10 @@ export function track(target, key?: string) {
   if (!dep) {
     depsMap.set(key, (dep = new Set()))
   }
-
-  trackEffect(dep);
+  trackEffect(activeEffect, dep);
 }
 
-export function trackEffect(dep) {
+export function trackEffect(activeEffect, dep) {
   let shouldTrack = !dep.has(activeEffect)
   if (shouldTrack) {
     dep.add(activeEffect)

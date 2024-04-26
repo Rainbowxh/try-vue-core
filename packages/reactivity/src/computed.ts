@@ -19,7 +19,7 @@ class ComputedRefImpl<T> {
 
   get value() {
     if(activeEffect) {
-      trackEffect(this.dep || (this.dep = new Set()))
+      trackEffect(activeEffect,this.dep || (this.dep = new Set()))
     }
     if(this._dirty) {
       this._value = this.effect.run();

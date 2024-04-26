@@ -3,6 +3,7 @@ import { mutableHandlers } from "./baseHandlers";
 
 export enum ReactiveFlags {
   IS_REACTIVE = '__v_isReactive', //judge if is reactive proxy
+  RAW = '__v_isRaw'
 }
 
 export function isReactive(target) {
@@ -30,4 +31,14 @@ export function reactive(target: Object){
     reactiveMap.set(target,proxy);
     return proxy
 
+}
+
+
+export function toReactive<T>(value: T): T {
+  return isObject(value) ? reactive(value) : value;
+}
+
+export function toRaw<T>(observed:T): T {
+  const raw = observed && observed[ReactiveFlags.RAW];
+  return raw ? toRaw(raw) : observed
 }
