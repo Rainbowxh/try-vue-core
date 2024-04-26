@@ -3,6 +3,7 @@ import { mutableHandlers } from "./baseHandlers";
 
 export enum ReactiveFlags {
   IS_REACTIVE = '__v_isReactive', //judge if is reactive proxy
+  IS_REF = '__v_isRef', //judge if is reactive proxy
   RAW = '__v_isRaw'
 }
 

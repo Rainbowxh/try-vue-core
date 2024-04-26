@@ -1,5 +1,5 @@
-import { isObject } from "@vue/shared";
-import { activeEffect, reactive, toRaw, trackEffect, trigger, triggerEffect } from ".";
+import { isArray, isFunction, isObject } from "@vue/shared";
+import { ReactiveFlags, activeEffect, isReactive, reactive, toRaw, trackEffect, trigger, triggerEffect } from ".";
 
 export function ref(value: unknown) {
   return createRef(value);
@@ -18,7 +18,7 @@ function createRef(rawValue: unknown, shallow = false) {
 }
 
 function isRef(value) {
-  return !!(value && value.__v_isRef === true)
+  return !!(value && value[ReactiveFlags.IS_REF] === true)
 }
 
 export class RefImpl<T> {
@@ -53,16 +53,67 @@ export class RefImpl<T> {
   }
 }
 
+export class ObjectRefImpl {
+  public readonly __v_isRef = true;
+
+  constructor(
+    private readonly _object,
+    private readonly _key
+    ){}
+
+  get value(){
+    return this._object[this._key]
+  }
+
+  set value(newValue) {
+    this._object[this._key] = newValue
+  } 
+}
+
 function toReactive<T>(value: T) {
   if (isObject) {
     return reactive(value)
   }
 }
 
-export function toRef() {
-
+export function toRef(source, key?: string) {
+  console.log("elicxh ")
+  if(isRef(source)){
+    return source
+  }else if(isFunction(source)){
+  }else if(isObject(source) && arguments.length > 1){
+    return propertyToRef(source,key)
+  }else {
+    return ref(source)
+  }
 }
 
-export function toRefs() {
+export function toRefs<T>(object: T) {
+  const result = isArray(object) ? Array.from({length: (object as Array<unknown>).length}) : {}
+  for(const key in Object) {
+    result[key] = propertyToRef(result,key)
+  }
+  return result
+}
+function propertyToRef(source,key){
+  return isRef(source) ? source : new ObjectRefImpl(source,key) 
+}
 
+export function proxyRef(objectWithRefs){
+  return isReactive(objectWithRefs) ? objectWithRefs : new Proxy(objectWithRefs,{
+      get(target,key,receiver) {
+        let result = Reflect.get(target,key,receiver)
+        return result[ReactiveFlags.IS_REF] ? result.value : result 
+      },
+      set(target,key,newValue,receiver) {
+        const oldValue = target[key]
+        
+        if(oldValue[ReactiveFlags.IS_REF]){
+          oldValue.value = newValue;
+          return true;
+        }
+        
+        return Reflect.set(target,key,newValue,receiver)
+      } 
+  })
 }
