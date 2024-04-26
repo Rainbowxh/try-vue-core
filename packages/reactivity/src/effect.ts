@@ -70,6 +70,7 @@ export function track(target, key?: string) {
 export function trackEffect(activeEffect, dep) {
   let shouldTrack = !dep.has(activeEffect)
   if (shouldTrack) {
+    //双向存储对应的效果
     dep.add(activeEffect)
     activeEffect.deps.push(dep)
   }

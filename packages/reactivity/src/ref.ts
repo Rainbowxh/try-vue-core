@@ -6,18 +6,18 @@ export function ref(value: unknown) {
 }
 
 export function shallowRef(value) {
-  return createRef(value,true);
+  return createRef(value, true);
 }
 
-function createRef(rawValue: unknown,shallow = false){
-  if(isRef(rawValue)){
+function createRef(rawValue: unknown, shallow = false) {
+  if (isRef(rawValue)) {
     return rawValue;
   }
 
-  return new RefImpl(rawValue,shallow)
+  return new RefImpl(rawValue, shallow)
 }
 
-function isRef(value){
+function isRef(value) {
   return !!(value && value.__v_isRef === true)
 }
 
@@ -39,30 +39,30 @@ export class RefImpl<T> {
   }
 
   get value() {
-    if(activeEffect){
-      trackEffect(activeEffect,this.dep || ( this.dep = new Set()))
+    if (activeEffect) {
+      trackEffect(activeEffect, this.dep || (this.dep = new Set()))
     }
     return this._value
   }
-  set value(newValue) { 
+  set value(newValue) {
     this._rawValue = newValue;
     this._value = newValue
-    if(this.dep){
+    if (this.dep) {
       triggerEffect(this.dep)
     }
   }
 }
 
 function toReactive<T>(value: T) {
-  if(isObject){
+  if (isObject) {
     return reactive(value)
   }
 }
 
-export function toRef(){
+export function toRef() {
 
 }
 
 export function toRefs() {
-  
+
 }
