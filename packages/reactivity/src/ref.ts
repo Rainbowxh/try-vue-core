@@ -33,7 +33,6 @@ export class RefImpl<T> {
     value: T,
     public readonly __v_isShallow: boolean
   ) {
-    console.log("我被执行了")
     this._rawValue = toRaw(value);
     this._value = toReactive(value);
   }

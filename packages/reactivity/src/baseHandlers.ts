@@ -1,4 +1,4 @@
-import { ReactiveFlags, reactive, track, trigger } from "@vue/reactivity";
+import { ReactiveFlags, reactive, reactiveMap, track, trigger } from "@vue/reactivity";
 import { isObject } from "@vue/shared";
 
 
@@ -7,6 +7,8 @@ export const mutableHandlers = {
     // special tag judge whether update
     if(ReactiveFlags.IS_REACTIVE === key) {
       return true;
+    }else if(ReactiveFlags.RAW){
+      return reactiveMap.get(target);
     }
 
     track(target,key)

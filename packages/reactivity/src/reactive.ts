@@ -11,7 +11,7 @@ export function isReactive(target) {
   return !!(target && target[ReactiveFlags.IS_REACTIVE])
 }
 
-const reactiveMap = new WeakMap();
+export const reactiveMap = new WeakMap();
 
 export function reactive(target: Object){
     if(!isObject(target)){
@@ -30,6 +30,7 @@ export function reactive(target: Object){
     const proxy = new Proxy(target as Object, mutableHandlers)
     
     reactiveMap.set(target,proxy);
+
     return proxy
 
 }

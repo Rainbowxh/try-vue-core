@@ -1,3 +1,5 @@
+
+import {recordEffectScope} from "."
 export let activeEffect;
 
 export function effect(fn: () => any, options: any = {}) {
@@ -16,7 +18,7 @@ export class ReactiveEffect<T = any> {
     //@ts-ignore
     private scheduler?: () => T
   ) {
-
+    recordEffectScope(this)
   }
   run() {
     if (!this.active) {
