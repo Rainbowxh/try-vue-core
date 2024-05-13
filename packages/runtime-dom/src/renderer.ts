@@ -1,4 +1,4 @@
-import { ShapeFlags } from "./shapeFlag"
+import { ShapeFlags } from "@vue/runtime-core"
 
 export function createRenderer(options: any) {
 
@@ -13,7 +13,7 @@ export function createRenderer(options: any) {
     setElementText: hostSetElementText,
     parentNode: hostParentNode,
     nextSibling: hostNextSibling,
-    setScopeId: hostSetScopeId = NOOP,
+    setScopeId: hostSetScopeId,
     insertStaticContent: hostInsertStaticContent,
   } = options
 
@@ -31,47 +31,60 @@ export function createRenderer(options: any) {
 
     if(props) {
       for(let key in props) {
-        hostPatchProp(el,key,null,props[key])
+          hostPatchProp(el,key,null,props[key])
       }
     }
 
     if(shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
       mountChildren(children, el)
     } else if(shapeFlag & ShapeFlags.TEXT_CHILDREN) {
-      hostSetElementText(container, children)
+      hostSetElementText(el, children)
     }
     hostInsert(el,container)
   }
-
-
-
   const patch = (n1,n2,container) => {
+    if(n1 === n2) {
+      return ;
+    }
 
-    if(n1 === n2) return ;
+    // n1 div =>  n2 p
+
+    console.log(n1,n2)
+
+
+
 
     if(n1 === null) {
       // first 
-
       mountElement(n2,container)
     }else {
-
+      // patch children 
     }
-  
   }
 
+  const unmount = (vnode) => {
+    hostRemove(vnode.el)
+  }
 
-
-
+  /**
+   * 
+   * @param vnode virtual doms
+   * @param container  actual doms
+   * @returns 
+   */
   const render = (vnode,container) => {
       if(vnode == null) {
-        return;
+        if(container.__vnode) {
+          unmount(container.__vnode)
+        }
       }else {
-
         patch(container._vnode || null,vnode,container)
-      }
-      container._vnode = vnode
+        container._vnode = vnode
+    }
   }
-  const createApp = () => {}
+
+  const createApp = () => {
+  }
 
   return {
     render,
