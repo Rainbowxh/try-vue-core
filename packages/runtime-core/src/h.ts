@@ -5,7 +5,7 @@ export function h(type, propsOrChildren, children?) {
   const l = arguments.length
 
   if (l === 2) {
-    if (isObject(propsOrChildren) && !propsOrChildren.isArray(propsOrChildren)) {
+    if (isObject(propsOrChildren) && !Array.isArray(propsOrChildren)) {
       if (isVnode(propsOrChildren)) {
         return createVNode(type, null, [propsOrChildren]);
       }

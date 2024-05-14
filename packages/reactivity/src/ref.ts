@@ -76,7 +76,6 @@ function toReactive<T>(value: T) {
 }
 
 export function toRef(source, key?: string) {
-  console.log("elicxh ")
   if(isRef(source)){
     return source
   }else if(isFunction(source)){
