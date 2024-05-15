@@ -1,5 +1,5 @@
 import { ReactiveEffect, reactive } from "@vue/reactivity"
-import { ShapeFlags, isSameVnode, Text, Fragment, queueJob, initProps,createComponentInstance, setupComponent } from "@vue/runtime-core"
+import { ShapeFlags, isSameVnode, Text, Fragment, queueJob, initProps, createComponentInstance, setupComponent } from "@vue/runtime-core"
 import { hasOwn } from "@vue/shared"
 
 export function createRenderer(options: any) {
@@ -67,8 +67,7 @@ export function createRenderer(options: any) {
       }
     }
   }
-
-
+  
   const patchChildren = (n1, n2, container) => {
     const c1 = n1.children
     const c2 = n2.children
@@ -332,7 +331,7 @@ export function createRenderer(options: any) {
 
 
   const mountComponent = (vnode, container, anchor = null) => {
-
+    console.log(vnode)
     //创建实例
     const instance = vnode.component = createComponentInstance(vnode)
     /**
@@ -342,9 +341,30 @@ export function createRenderer(options: any) {
     // 给实例的props赋值
     setupComponent(instance)
     // 安装属性
-    setupRenderFn(instance,container,anchor)
+    setupRenderFn(instance, container, anchor)
   }
-  const setupRenderFn =(instance,container,anchor) => {
+  const updateProps = (prevProps, nextProps) => {
+    //比对
+    for(let key in nextProps) {
+      prevProps[key] = nextProps[key]
+    }
+
+    for(let key in prevProps) {
+      if(!(key in nextProps)) {
+        delete nextProps[key]
+      }
+    }
+  }
+
+  const updateComponentPreRender = (instance, next) => {
+    instance.next = undefined
+    // 老节点 => 新节点
+    instance.vnode = next;
+    updateProps(instance.props, next.props);
+    // updateSlots()
+  }
+
+  const setupRenderFn = (instance, container, anchor) => {
     const componentFn = () => {
       const { render } = instance || {};
 
@@ -355,7 +375,16 @@ export function createRenderer(options: any) {
         instance.isMounted = true;
         instance.subTree = subTree
       } else {
+        let { next } = instance
+        // props update 或者插槽更新
+        if(next) {
+          // 更新props属性/更新插槽属性
+          updateComponentPreRender(instance,next); 
+        }
+
+        // 数据变化导致的更新  
         // update function
+        // 需要拿到最新的属性和插槽到原来的实力上
         const subTree = render.call(instance.proxy);
         patch(instance.subTree, subTree, container)
         instance.subTree = subTree;
@@ -369,23 +398,45 @@ export function createRenderer(options: any) {
     update()
   }
 
+  const hasPropsChanged = (prev = {}, next = {}) => {
+    let l1 = Object.keys(prev);
+    let l2 = Object.keys(next);
+
+    if (l1 !== l2) return true;
+
+    for (let i = 0; i < l2.length; i++) {
+      const key = l2[i];
+      if (next[key] !== prev[key]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  const shouldComponentUpdate = (n1, n2) => {
+    const { props: prevProps, children: prevChildren } = n1;
+    const { props: nextProps, children: nextChildren } = n2;
+
+    // 有插槽,需要更新
+    if (prevChildren || nextChildren) return true
+
+    if (prevProps === nextProps) return false;
+
+    return hasPropsChanged(prevProps, nextProps)
+  }
   /**
    * finish update
-
    */
   const updateComponent = (n1, n2, container, anchor = null) => {
     if (n1 === n2) return;
 
-    let { props: nextProps } = n2;
+    const instance = n2.component = n1.component
 
-    n2.component = n1.component
-    n2.component.update();
-    // if(shouldComponentUpdate(n1,n2)){
-    //   //比对属性和插槽是否要更新
-    //   console.log(n2.component.update())
-    // }
-
-
+    if (shouldComponentUpdate(n1, n2)) {
+      //比对属性和插槽是否要更新
+      instance.next = n2;
+      instance.update()
+    }
   }
 
 
@@ -481,7 +532,6 @@ export function createRenderer(options: any) {
 
   const createApp = () => {
   }
-
   return {
     render,
     createApp

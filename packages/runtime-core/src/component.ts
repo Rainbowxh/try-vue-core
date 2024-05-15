@@ -26,7 +26,6 @@ const publicProperties = {
 }
 const PublicInstanceProxyHandlers = {
     get(target, key) {
-
       let { data, props } = target
       if (hasOwn(data, key)) {
         return data[key]
@@ -71,7 +70,6 @@ export function setupComponent(instance) {
   initProps(instance, props);
   // create代理对象
   instance.proxy = new Proxy(instance, PublicInstanceProxyHandlers)
-
   let data = type.data
   if(type.data){
     if(isFunction(data)){

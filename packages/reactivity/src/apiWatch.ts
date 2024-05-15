@@ -1,5 +1,5 @@
 import { isFunction, isObject } from "@vue/shared";
-import { ReactiveEffect } from "./effect";
+import { ReactiveEffect, activeEffect } from "./effect";
 import { isReactive } from "./reactive";
 
 export function watch(source, cb, options) {
@@ -29,13 +29,16 @@ function doWatch(source, cb, { immediate = false, deep = false }) {
     if(cb) {
       const newValue = effect.run();
       if(cleanup) cleanup();
-      cb(newValue, oldValue, (onCleanup) => cleanup = onCleanup);
+      cb(newValue, oldValue, (onCleanup) => {
+        cleanup = onCleanup
+      });
       oldValue = newValue;
     }else {
       // watchEffect
       effect.run();
     }
   }
+
 
   const effect = new ReactiveEffect(getter, scheduler)
 

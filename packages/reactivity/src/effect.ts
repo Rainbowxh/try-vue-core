@@ -96,12 +96,23 @@ export function trigger(target, key?: string, value?: any, oldValue?: any) {
 
 export function triggerEffect(dep) {
   const effects = [...dep];
+
   effects.forEach(effect => {
+    const judge = (effect == activeEffect)
+
+    /**
+     * 避免无限循环
+     * effect(() => {                     activeEffect
+     *    const a = test.value;
+     *    test.value = test.value + 1     effect (now effect is equal to activeEffect)
+     * })
+     */
     if (effect !== activeEffect) {
       if (!effect.scheduler) {
         effect.run()
       } else {
-        effect.scheduler();
+        effect.scheduler()
+        // effect.scheduler();
       }
     }
   });
