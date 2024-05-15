@@ -9,7 +9,5 @@ export const render = (vnode,container) => {
   return createRenderer(renderOptions).render(vnode,container);
 }
 
-import {h as coreH} from "../../runtime-core/dist/runtime-core.esm.js"
+export * from "../../runtime-core/dist/runtime-core.esm.js"
 
-export const h = coreH;
-console.log(h)

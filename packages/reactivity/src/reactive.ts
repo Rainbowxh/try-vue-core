@@ -32,7 +32,6 @@ export function reactive(target: Object){
     reactiveMap.set(target,proxy);
 
     return proxy
-
 }
 
 

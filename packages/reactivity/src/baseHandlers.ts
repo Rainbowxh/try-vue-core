@@ -4,10 +4,12 @@ import { isObject } from "@vue/shared";
 
 export const mutableHandlers = {
   get(target, key, receiver) {
+
+
     // special tag judge whether update
     if(ReactiveFlags.IS_REACTIVE === key) {
       return true;
-    }else if(ReactiveFlags.RAW){
+    }else if(ReactiveFlags.RAW === key){
       return reactiveMap.get(target);
     }
 

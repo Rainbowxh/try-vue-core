@@ -26,7 +26,7 @@ export const nodeOps = {
   createText(text) {
     return document.createTextNode(text)
   },
-  setText(node, text) {
+  setText: (node, text) => {
     node.nodeValue = text
   }
 }

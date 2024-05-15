@@ -1,4 +1,6 @@
-import { ShapeFlags, isSameVnode } from "@vue/runtime-core"
+import { ReactiveEffect, reactive } from "@vue/reactivity"
+import { ShapeFlags, isSameVnode, Text, Fragment, queueJob, initProps,createComponentInstance, setupComponent } from "@vue/runtime-core"
+import { hasOwn } from "@vue/shared"
 
 export function createRenderer(options: any) {
 
@@ -34,13 +36,11 @@ export function createRenderer(options: any) {
     const { type, props, children, shapeFlag } = vnode
 
     const el = (vnode.el = hostCreateElement(type))
-
     if (props) {
       for (let key in props) {
         hostPatchProp(el, key, null, props[key])
       }
     }
-
     if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
       mountChildren(children, el)
     } else if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
@@ -117,12 +117,16 @@ export function createRenderer(options: any) {
     const l2 = c2.length;
     let e1 = l1 - 1;
     let e2 = l2 - 1
+
     let i = 0;
 
     /**
      * 全量 diff,深度遍历对比
      * a b c
      * a b c d
+     * 
+     * a b 
+     * d
      */
     while (i <= e1 && i <= e2) {
       const n1 = c1[i];
@@ -137,7 +141,7 @@ export function createRenderer(options: any) {
 
     /**
      * 全量 diff,深度遍历对比
-     * a b c
+     *   b c d
      * a b c d
      */
     while (i <= e1 && i <= e2) {
@@ -153,36 +157,44 @@ export function createRenderer(options: any) {
     }
 
     /**
+     * 
+     * f g b
      * c1.length < c2.length 
-     * 新增节点
+     * 新数组长度大于老数组长度 新增节点
      */
     if (i > e1 && i <= e2) {
-
       while (i <= e2) {
-        console.log(i, e1, e2)
-
         const nextPos = e2 + 1;
-
         const anchor = nextPos < l2 ? c2[nextPos].el : null;
         patch(null, c2[i], container, anchor)
         i++
       }
     }
+
     /**
+     * 
      * c1.length > c2.length
-     * 删除节点
+     * 新数组长度小于老数组长度 删除节点
      */
     if (i <= e1 && i > e2) {
       while (i <= e1) {
-        console.log(c1[i])
         unmount(c1[i])
         i++
       }
     }
+
+    if (i > e2) {
+      return;
+    }
+
+
     /**
      * fast diff algorithm
      * b c d a e
      * e c d a b
+     * 计算最长递增子序列
+     * 递增的部分不需要移动
+     * 剩余部分开始按顺序添加渲染
      */
     // const c1s = c1[i]
     // const c1e = c1[e1]
@@ -194,8 +206,11 @@ export function createRenderer(options: any) {
     //               c d e 
     //               e c d 
 
+
     let s1 = i;
     let s2 = i;
+
+    console.log(i, e1, e2)
 
     const keyToNewIndexMap = new Map();
 
@@ -226,11 +241,18 @@ export function createRenderer(options: any) {
     for (let i = toBePatched - 1; i >= 0; i--) {
       const nextIdx = s2 + i;
       const nextChild = c2[nextIdx];
+      /**
+       * 计算是向后添加还是向前添加
+       * a b c d e
+       * b c d e f g
+       * 
+       * b c d e f g
+       *   a b c d e
+       */
       const anchor = nextIdx + 1 < l2 ? c2[nextIdx + 1].el : null
-      console.log(newIndexToOldIndexMap)
       if (newIndexToOldIndexMap[nextIdx] === 0) {
         patch(null, nextChild, container, anchor)
-      } else if (!moved) { 
+      } else if (!moved) {
         if (j < 0 || i !== increasingNewIndexSequence[j]) {
           hostInsert(nextChild.el, container, anchor)
         } else {
@@ -240,11 +262,7 @@ export function createRenderer(options: any) {
     }
   }
 
-
-
-
   const getSequence = (arr) => {
-    console.log(arr)
     let len = arr.length;
     let result = [0];
     let p = arr.slice();  // 标识索引
@@ -268,36 +286,31 @@ export function createRenderer(options: any) {
       //
       start = 0;
       end = result.length - 1;
-      
-      while(start < end){
+
+      while (start < end) {
         mid = (start + end) / 2 | 0
-        if(arr[result[mid]] < arrI) {
+        if (arr[result[mid]] < arrI) {
           start = mid + 1;
-        }else {
+        } else {
           end = mid;
         }
       }
       // mid 第一个值比当前值大的值
-      if(arrI < arr[result[start]]){
+      if (arrI < arr[result[start]]) {
         p[i] = result[start - 1]; // 记住交换节点前一个索引
-        result[start] = i; 
+        result[start] = i;
       }
     }
 
     let rl = result.length
-    let last =result[rl-1];
-
-    while(rl-- > 0) {
+    let last = result[rl - 1];
+    while (rl-- > 0) {
       result[rl] = last;
-      last = p[last];  
+      last = p[last];
     }
-    
+
     return result
   }
-
-
-
-
 
   const patchElement = (n1, n2) => {
     const oldprops = n1.props || {}
@@ -318,25 +331,135 @@ export function createRenderer(options: any) {
   }
 
 
-  const patch = (n1, n2, container, anchor = null) => {
+  const mountComponent = (vnode, container, anchor = null) => {
 
+    //创建实例
+    const instance = vnode.component = createComponentInstance(vnode)
+    /**
+     * instance.propsOptions 用户接受的属性列表
+     * instance.props        组件真实接受的属性列表
+     */
+    // 给实例的props赋值
+    setupComponent(instance)
+    // 安装属性
+    setupRenderFn(instance,container,anchor)
+  }
+  const setupRenderFn =(instance,container,anchor) => {
+    const componentFn = () => {
+      const { render } = instance || {};
+
+      if (!instance.isMounted) {
+        // create function
+        const subTree = render.call(instance.proxy)
+        patch(null, subTree, container, anchor)
+        instance.isMounted = true;
+        instance.subTree = subTree
+      } else {
+        // update function
+        const subTree = render.call(instance.proxy);
+        patch(instance.subTree, subTree, container)
+        instance.subTree = subTree;
+      }
+    }
+    const effect = new ReactiveEffect(componentFn, () => {
+      queueJob(instance.update)
+    })
+
+    const update = (instance.update = effect.run.bind(effect))
+    update()
+  }
+
+  /**
+   * finish update
+
+   */
+  const updateComponent = (n1, n2, container, anchor = null) => {
+    if (n1 === n2) return;
+
+    let { props: nextProps } = n2;
+
+    n2.component = n1.component
+    n2.component.update();
+    // if(shouldComponentUpdate(n1,n2)){
+    //   //比对属性和插槽是否要更新
+    //   console.log(n2.component.update())
+    // }
+
+
+  }
+
+
+  const processComponent = (n1, n2, container) => {
+    if (n1 === null) {
+      // 组件的状态的更新 内部state的更新
+      mountComponent(n2, container)
+    } else {
+      //组件 指代的是组件更新，插槽更新 props
+      updateComponent(n1, n2, container)
+    }
+  }
+
+  const processFragment = (n1, n2, container) => {
+    if (n1 === null) {
+      mountChildren(n2.children, container)
+    } else {
+      patchKeyedChildren(n1.children, n2.children, container)
+      // patchChildren(n1, n2,container)
+    }
+  }
+
+  const processText = (n1, n2, container) => {
+    if (n1 === null) {
+      n2.el = hostCreateText(n2.children)
+      hostInsert(n2.el, container)
+    } else {
+      let el = (n2.el = n1.el);
+      if (n1.children !== n2.children) {
+        hostSetText(el, n2.children)
+      }
+    }
+  }
+
+  const patch = (n1, n2, container, anchor = null) => {
     if (n1 === n2) {
       return;
     }
 
-    // n1 div =>  n2 p
-    // del old node values
     if (n1 && !isSameVnode(n1, n2)) {
       unmount(n1); // 删除节点
       n1 = null
     }
 
-    processElement(n1, n2, container, anchor)
+    // deal different type
+    const { type, shapeFlag } = n2;
+
+
+    switch (type) {
+      case Text:
+        processText(n1, n2, container)
+        return;
+      case Fragment:
+        processFragment(n1, n2, container);
+        return;
+      default:
+        if (shapeFlag & ShapeFlags.ELEMENT) {
+          // n1 div =>  n2 p del old node values
+          processElement(n1, n2, container, anchor)
+        } else if (shapeFlag & ShapeFlags.COMPONENT) {
+          processComponent(n1, n2, container)
+        }
+        return;
+    }
 
   }
 
   const unmount = (vnode) => {
-    hostRemove(vnode.el)
+    if (vnode.type === Fragment) {
+      //卸载的时候，卸载所有的儿子节点
+      return unmountChildren(vnode.children)
+    } else {
+      hostRemove(vnode.el)
+    }
   }
 
   /**
@@ -352,7 +475,7 @@ export function createRenderer(options: any) {
       }
     } else {
       patch(container._vnode || null, vnode, container)
-      container._vnode = vnode
+      container.__vnode = vnode
     }
   }
 

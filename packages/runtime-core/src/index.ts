@@ -1,4 +1,7 @@
 export * from "./h"
 export * from "./shapeFlag"
 export * from "./vnode"
+export * from "./scheduler"
+export * from "./componentProps"
+export * from "./component"
 export * from "@vue/runtime-core"
