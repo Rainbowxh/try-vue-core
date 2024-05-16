@@ -10,4 +10,5 @@ export const render = (vnode,container) => {
 }
 
 export * from "../../runtime-core/dist/runtime-core.esm.js"
+export * from "../../reactivity/dist/reactivity.esm.js";
 

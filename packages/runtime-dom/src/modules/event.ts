@@ -3,7 +3,6 @@ export const patchEvent = (el: HTMLElement,key,nextValue) => {
 
   const name = key.slice(2).toLowerCase();
 
-
   const existingInvoker = invokers[name]
 
   if(nextValue && existingInvoker) {

@@ -1,10 +1,10 @@
+import { isRef } from "@vue/reactivity";
 import { ReactiveFlags, reactive, reactiveMap, track, trigger } from "@vue/reactivity";
 import { isObject } from "@vue/shared";
 
 
 export const mutableHandlers = {
   get(target, key, receiver) {
-
 
     // special tag judge whether update
     if(ReactiveFlags.IS_REACTIVE === key) {
@@ -16,6 +16,16 @@ export const mutableHandlers = {
     track(target,key)
 
     const result = Reflect.get(target,key,receiver)
+
+    /**
+     * let state = reactive({ a: ref('123') })
+     * state.a ===> state.a.value
+     * 
+     */
+    if(isRef(result)){
+      return result.value
+    }
+
 
     if(isObject(result)){ 
       return reactive(result)

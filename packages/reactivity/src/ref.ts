@@ -17,7 +17,7 @@ function createRef(rawValue: unknown, shallow = false) {
   return new RefImpl(rawValue, shallow)
 }
 
-function isRef(value) {
+export function isRef(value) {
   return !!(value && value[ReactiveFlags.IS_REF] === true)
 }
 
@@ -110,7 +110,6 @@ export function proxyRef(objectWithRefs){
           oldValue.value = newValue;
           return true;
         }
-        
         return Reflect.set(target,key,newValue,receiver)
       } 
   })

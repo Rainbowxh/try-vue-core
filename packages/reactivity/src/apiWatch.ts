@@ -39,7 +39,6 @@ function doWatch(source, cb, { immediate = false, deep = false }) {
     }
   }
 
-
   const effect = new ReactiveEffect(getter, scheduler)
 
   oldValue = effect.run();

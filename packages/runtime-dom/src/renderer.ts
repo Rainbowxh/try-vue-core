@@ -37,9 +37,10 @@ export function createRenderer(options: any) {
 
     const el = (vnode.el = hostCreateElement(type))
     if (props) {
-      for (let key in props) {
-        hostPatchProp(el, key, null, props[key])
-      }
+      patchProps({}, props, el)
+      // for (let key in props) {
+      //   hostPatchProp(el, key, null, props[key])
+      // }
     }
     if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
       mountChildren(children, el)
@@ -331,7 +332,7 @@ export function createRenderer(options: any) {
 
 
   const mountComponent = (vnode, container, anchor = null) => {
-    console.log(vnode)
+
     //创建实例
     const instance = vnode.component = createComponentInstance(vnode)
     /**
@@ -340,6 +341,7 @@ export function createRenderer(options: any) {
      */
     // 给实例的props赋值
     setupComponent(instance)
+
     // 安装属性
     setupRenderFn(instance, container, anchor)
   }
@@ -366,11 +368,20 @@ export function createRenderer(options: any) {
 
   const setupRenderFn = (instance, container, anchor) => {
     const componentFn = () => {
-      const { render } = instance || {};
-
+      const { render,setup } = instance || {};
+      
       if (!instance.isMounted) {
-        // create function
-        const subTree = render.call(instance.proxy)
+        // // create function
+        // let subTree = null
+        // if(render) {
+        //   subTree = render.call(instance.proxy)
+        // }else{
+        //   const render = setup();
+        //   subTree = render();
+        // }
+
+
+        const subTree = render.call(instance.proxy, instance.proxy)
         patch(null, subTree, container, anchor)
         instance.isMounted = true;
         instance.subTree = subTree
@@ -472,6 +483,7 @@ export function createRenderer(options: any) {
   }
 
   const patch = (n1, n2, container, anchor = null) => {
+
     if (n1 === n2) {
       return;
     }
@@ -483,7 +495,6 @@ export function createRenderer(options: any) {
 
     // deal different type
     const { type, shapeFlag } = n2;
-
 
     switch (type) {
       case Text:

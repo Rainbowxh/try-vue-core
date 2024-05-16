@@ -1,6 +1,6 @@
 import { hasOwn, isFunction } from "@vue/shared";
 import { initProps } from "./componentProps";
-import { reactive } from "@vue/reactivity";
+import { proxyRef, reactive } from "@vue/reactivity";
 
 export function createComponentInstance(vnode) {
   const instance = {
@@ -13,11 +13,11 @@ export function createComponentInstance(vnode) {
     attrs: {},
     propsOptions: vnode.type.props || {},
     proxy: null,
+    setupState: null
     // lifecycle
     // slots
     // event
   }
-
   return instance
 } 
 const publicProperties = {
@@ -26,11 +26,13 @@ const publicProperties = {
 }
 const PublicInstanceProxyHandlers = {
     get(target, key) {
-      let { data, props } = target
+      let { data, props, setupState } = target
       if (hasOwn(data, key)) {
         return data[key]
       } else if (hasOwn(props, key)) {
         return props[key]
+      } else if(hasOwn(setupState,key)) {
+        return setupState[key]
       }
       const getter = publicProperties[key]
       if (getter) {
@@ -38,12 +40,14 @@ const PublicInstanceProxyHandlers = {
       }
     },
     set(target, key, value, receiver) {
-      let { data, props } = target
+      let { data, props, setupState } = target
       if (hasOwn(data, key)) {
         data[key] = value
       } else if (hasOwn(props, key)) {
         props[key] = value
-
+        return false;
+      } else if (hasOwn(props, key)) {
+        setupState[key] = value
         return false;
       }
       return true
@@ -70,12 +74,38 @@ export function setupComponent(instance) {
   initProps(instance, props);
   // create代理对象
   instance.proxy = new Proxy(instance, PublicInstanceProxyHandlers)
+
+  let { setup } = type;
+
+  if(setup) {
+    const setupContext = {
+      attrs: instance.attrs,
+      expose: (exposed) => {
+        instance.exposed = exposed; //将当前的属性放在instances上面
+      },
+      emit: (event,...args) => {
+        const eventName = `on${event[0].toUpperCase()}` + event.slice(1);
+        const handler = instance.vnode.props[eventName];
+        handler(...args); 
+      }
+    }
+    const setupResult = setup(instance.props, setupContext);
+    if(isFunction(setupResult)) {
+      instance.render = setupResult
+    } else {
+      // 将返回结果作为数据源
+      instance.setupState = proxyRef(setupResult)
+    }
+  }
+
   let data = type.data
   if(type.data){
     if(isFunction(data)){
       instance.data = reactive(data());
     }
   }
+
+
   // 用户写的render作为实例的render
-  instance.render = type.render;
+  instance.render = instance.render ?? type.render;
 }
