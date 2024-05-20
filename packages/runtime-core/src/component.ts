@@ -1,6 +1,7 @@
 import { hasOwn, isFunction } from "@vue/shared";
 import { initProps } from "./componentProps";
 import { proxyRef, reactive } from "@vue/reactivity";
+import { ShapeFlags } from "@vue/runtime-dom";
 
 export function createComponentInstance(vnode) {
   const instance = {
@@ -32,6 +33,7 @@ const PublicInstanceProxyHandlers = {
       } else if (hasOwn(props, key)) {
         return props[key]
       } else if(hasOwn(setupState,key)) {
+
         return setupState[key]
       }
       const getter = publicProperties[key]
@@ -40,6 +42,7 @@ const PublicInstanceProxyHandlers = {
       }
     },
     set(target, key, value, receiver) {
+
       let { data, props, setupState } = target
       if (hasOwn(data, key)) {
         data[key] = value
@@ -55,12 +58,18 @@ const PublicInstanceProxyHandlers = {
 
 }
 
+const initSlots = (instance,children) => {
+  if(instance.vnode.shapeFlag & ShapeFlags.SLOTS_CHILDREN) {
+    //将用户的插槽绑定到实例上
+    instance.slots = children;
+  }
 
+}
 
 export function setupComponent(instance) {
   if(!instance) return;
 
-  const { type, props } = instance.vnode;
+  const { type, props, children } = instance.vnode;
 
   /**
    * 组件的虚拟节点传递的props
@@ -72,14 +81,17 @@ export function setupComponent(instance) {
    * instance.props        组件真实接受的属性列表   <component name='123' age='12' />
    */ 
   initProps(instance, props);
+  initSlots(instance, children);
   // create代理对象
   instance.proxy = new Proxy(instance, PublicInstanceProxyHandlers)
+
 
   let { setup } = type;
 
   if(setup) {
     const setupContext = {
       attrs: instance.attrs,
+      slots: instance.slots,
       expose: (exposed) => {
         instance.exposed = exposed; //将当前的属性放在instances上面
       },
@@ -105,6 +117,7 @@ export function setupComponent(instance) {
     }
   }
 
+  console.log(instance)
 
   // 用户写的render作为实例的render
   instance.render = instance.render ?? type.render;

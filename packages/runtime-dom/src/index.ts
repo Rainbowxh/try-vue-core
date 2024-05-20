@@ -9,6 +9,6 @@ export const render = (vnode,container) => {
   return createRenderer(renderOptions).render(vnode,container);
 }
 
-export * from "../../runtime-core/dist/runtime-core.esm.js"
-export * from "../../reactivity/dist/reactivity.esm.js";
+export * from "@vue/runtime-core"
+export * from "@vue/reactivity";
 

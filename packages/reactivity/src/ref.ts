@@ -1,5 +1,11 @@
 import { isArray, isFunction, isObject } from "@vue/shared";
-import { ReactiveFlags, activeEffect, isReactive, reactive, toRaw, trackEffect, trigger, triggerEffect } from ".";
+import { ReactiveFlags, isReactive, reactive, toRaw, trackEffect, triggerEffect } from ".";
+
+
+
+
+
+import { activeEffect, getactiveEffect } from "@vue/reactivity"
 
 export function ref(value: unknown) {
   return createRef(value);
@@ -44,6 +50,7 @@ export class RefImpl<T> {
     return this._value
   }
   set value(newValue) {
+    console.log("elicxh test sth")
     this._rawValue = newValue;
     this._value = newValue
     if (this.dep) {
@@ -104,6 +111,7 @@ export function proxyRef(objectWithRefs){
         return result[ReactiveFlags.IS_REF] ? result.value : result 
       },
       set(target,key,newValue,receiver) {
+
         const oldValue = target[key]
         
         if(oldValue[ReactiveFlags.IS_REF]){

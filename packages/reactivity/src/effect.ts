@@ -2,6 +2,13 @@
 import {recordEffectScope} from "."
 export let activeEffect;
 
+let id = 0
+
+export const getactiveEffect = ()  => {
+  console.log(id++)
+  return activeEffect;
+}
+
 export function effect(fn: () => any, options: any = {}) {
   const _effect = new ReactiveEffect(fn, options?.scheduler);
   _effect.run();
@@ -29,7 +36,8 @@ export class ReactiveEffect<T = any> {
       this.parent = activeEffect;
       activeEffect = this;
       cleanupEffect(this);
-      return this.fn();
+      const result =  this.fn();
+      return result
     } finally {
       activeEffect = this.parent
       this.parent = undefined
@@ -95,11 +103,10 @@ export function trigger(target, key?: string, value?: any, oldValue?: any) {
 }
 
 export function triggerEffect(dep) {
+
   const effects = [...dep];
 
   effects.forEach(effect => {
-    const judge = (effect == activeEffect)
-
     /**
      * 避免无限循环
      * effect(() => {                     activeEffect

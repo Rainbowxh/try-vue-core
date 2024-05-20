@@ -1,6 +1,12 @@
 import { ReactiveEffect, reactive } from "@vue/reactivity"
-import { ShapeFlags, isSameVnode, Text, Fragment, queueJob, initProps, createComponentInstance, setupComponent } from "@vue/runtime-core"
-import { hasOwn } from "@vue/shared"
+import { ShapeFlags, 
+  isSameVnode, 
+  Text, 
+  Fragment, 
+  queueJob,
+   initProps, 
+   createComponentInstance, 
+   setupComponent } from "@vue/runtime-core"
 
 export function createRenderer(options: any) {
 
@@ -369,18 +375,7 @@ export function createRenderer(options: any) {
   const setupRenderFn = (instance, container, anchor) => {
     const componentFn = () => {
       const { render,setup } = instance || {};
-      
       if (!instance.isMounted) {
-        // // create function
-        // let subTree = null
-        // if(render) {
-        //   subTree = render.call(instance.proxy)
-        // }else{
-        //   const render = setup();
-        //   subTree = render();
-        // }
-
-
         const subTree = render.call(instance.proxy, instance.proxy)
         patch(null, subTree, container, anchor)
         instance.isMounted = true;
@@ -512,7 +507,6 @@ export function createRenderer(options: any) {
         }
         return;
     }
-
   }
 
   const unmount = (vnode) => {
