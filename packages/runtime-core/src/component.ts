@@ -3,6 +3,17 @@ import { initProps } from "./componentProps";
 import { proxyRef, reactive } from "@vue/reactivity";
 import { ShapeFlags } from "@vue/runtime-dom";
 
+export let currentInstance;
+
+export function setCurrentInstance(instance) {
+  currentInstance = instance
+}
+
+export function getCurrentInstance(){
+  return currentInstance
+}
+
+
 export function createComponentInstance(vnode) {
   const instance = {
     data: null,
@@ -14,11 +25,13 @@ export function createComponentInstance(vnode) {
     attrs: {},
     propsOptions: vnode.type.props || {},
     proxy: null,
-    setupState: null
+    setupState: null,
+    slots: {},
+
     // lifecycle
-    // slots
     // event
   }
+
   return instance
 } 
 const publicProperties = {
@@ -58,12 +71,11 @@ const PublicInstanceProxyHandlers = {
 
 }
 
-const initSlots = (instance,children) => {
+const   initSlots = (instance,children) => {
   if(instance.vnode.shapeFlag & ShapeFlags.SLOTS_CHILDREN) {
     //将用户的插槽绑定到实例上
     instance.slots = children;
   }
-
 }
 
 export function setupComponent(instance) {
@@ -74,14 +86,14 @@ export function setupComponent(instance) {
   /**
    * 组件的虚拟节点传递的props
    */
-  
-
   /**
    * instance.propsOptions 组件上所接收的属性列表   props: { name: '123' } 
    * instance.props        组件真实接受的属性列表   <component name='123' age='12' />
    */ 
   initProps(instance, props);
   initSlots(instance, children);
+
+
   // create代理对象
   instance.proxy = new Proxy(instance, PublicInstanceProxyHandlers)
 
@@ -101,7 +113,10 @@ export function setupComponent(instance) {
         handler(...args); 
       }
     }
+    setCurrentInstance(instance)
     const setupResult = setup(instance.props, setupContext);
+    setCurrentInstance(null)
+    
     if(isFunction(setupResult)) {
       instance.render = setupResult
     } else {
@@ -116,8 +131,6 @@ export function setupComponent(instance) {
       instance.data = reactive(data());
     }
   }
-
-  console.log(instance)
 
   // 用户写的render作为实例的render
   instance.render = instance.render ?? type.render;

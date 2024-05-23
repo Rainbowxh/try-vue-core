@@ -7,6 +7,7 @@ import { ShapeFlags,
    initProps, 
    createComponentInstance, 
    setupComponent } from "@vue/runtime-core"
+import { invokeArrayFn } from "@vue/shared"
 
 export function createRenderer(options: any) {
 
@@ -341,9 +342,12 @@ export function createRenderer(options: any) {
 
     //创建实例
     const instance = vnode.component = createComponentInstance(vnode)
+
+    
     /**
      * instance.propsOptions 用户接受的属性列表
      * instance.props        组件真实接受的属性列表
+     * instance.slots        用户插槽
      */
     // 给实例的props赋值
     setupComponent(instance)
@@ -364,42 +368,69 @@ export function createRenderer(options: any) {
     }
   }
 
+  const updateSlots = (slots, next) => {
+
+  }
+
   const updateComponentPreRender = (instance, next) => {
     instance.next = undefined
     // 老节点 => 新节点
     instance.vnode = next;
+    // 更新属性
     updateProps(instance.props, next.props);
-    // updateSlots()
+    // 需要更新插槽
+    // updateSlots(instance.slots, next.slots);
+    // 将新的children合并到新的
+    Object.assign(instance.slots, next.children)
   }
 
   const setupRenderFn = (instance, container, anchor) => {
+
+    console.log(instance)
+
     const componentFn = () => {
       const { render,setup } = instance || {};
+      const { bm,m,bu, u } = instance
       if (!instance.isMounted) {
+
+        if(bm) {
+          invokeArrayFn(bm);
+        }
+
         const subTree = render.call(instance.proxy, instance.proxy)
         patch(null, subTree, container, anchor)
         instance.isMounted = true;
         instance.subTree = subTree
+
+        if(m) {
+          invokeArrayFn(m);
+        }
       } else {
+        console.log("doing?????")
         let { next } = instance
         // props update 或者插槽更新
         if(next) {
           // 更新props属性/更新插槽属性
           updateComponentPreRender(instance,next); 
         }
-
+        if(bu) {
+          invokeArrayFn(bu);
+        }
         // 数据变化导致的更新  
         // update function
         // 需要拿到最新的属性和插槽到原来的实力上
         const subTree = render.call(instance.proxy);
         patch(instance.subTree, subTree, container)
         instance.subTree = subTree;
+
+        if(u) {
+          invokeArrayFn(u);
+        }
       }
     }
     const effect = new ReactiveEffect(componentFn, () => {
       queueJob(instance.update)
     })
-
     const update = (instance.update = effect.run.bind(effect))
     update()
   }
@@ -423,7 +454,9 @@ export function createRenderer(options: any) {
     const { props: prevProps, children: prevChildren } = n1;
     const { props: nextProps, children: nextChildren } = n2;
 
-    // 有插槽,需要更新
+    // props 是否更新
+    // slots 是否需要更新
+
     if (prevChildren || nextChildren) return true
 
     if (prevProps === nextProps) return false;
@@ -530,7 +563,7 @@ export function createRenderer(options: any) {
         unmount(container.__vnode)
       }
     } else {
-      patch(container._vnode || null, vnode, container)
+      patch(container.__vnode || null, vnode, container)
       container.__vnode = vnode
     }
   }

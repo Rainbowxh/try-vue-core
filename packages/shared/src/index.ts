@@ -12,3 +12,7 @@ export const hasOwn = (value,key) => {
   if(value === null || value === undefined) return false;
   return Object.prototype.hasOwnProperty.call(value,key)
 }
+
+export function invokeArrayFn(arr) {
+  arr.forEach(fn => fn());
+}

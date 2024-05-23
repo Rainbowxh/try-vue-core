@@ -26,8 +26,7 @@ export function createVNode(type, props = null, children = null) {
       type = ShapeFlags.ARRAY_CHILDREN
     } else if(isObject(children)) {
       type = ShapeFlags.SLOTS_CHILDREN
-    }
-     else {
+    } else {
       type = ShapeFlags.TEXT_CHILDREN
     }
     vnode.shapeFlag |= type
