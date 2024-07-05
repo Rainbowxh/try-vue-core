@@ -21,15 +21,15 @@ export function createVNode(type, props = null, children = null) {
     slots: {}
   }
   if (children) {
-    let type = 0
+    let shapeFlagChildren = 0
     if (Array.isArray(children)) {
-      type = ShapeFlags.ARRAY_CHILDREN
+      shapeFlagChildren = ShapeFlags.ARRAY_CHILDREN
     } else if(isObject(children)) {
-      type = ShapeFlags.SLOTS_CHILDREN
+      shapeFlagChildren = ShapeFlags.SLOTS_CHILDREN
     } else {
-      type = ShapeFlags.TEXT_CHILDREN
+      shapeFlagChildren = ShapeFlags.TEXT_CHILDREN
     }
-    vnode.shapeFlag |= type
+    vnode.shapeFlag |= shapeFlagChildren
   }
   return vnode
 }

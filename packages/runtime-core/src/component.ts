@@ -27,7 +27,6 @@ export function createComponentInstance(vnode) {
     proxy: null,
     setupState: null,
     slots: {},
-
     // lifecycle
     // event
   }
@@ -41,12 +40,12 @@ const publicProperties = {
 const PublicInstanceProxyHandlers = {
     get(target, key) {
       let { data, props, setupState } = target
+
       if (hasOwn(data, key)) {
         return data[key]
       } else if (hasOwn(props, key)) {
         return props[key]
       } else if(hasOwn(setupState,key)) {
-
         return setupState[key]
       }
       const getter = publicProperties[key]
@@ -71,7 +70,7 @@ const PublicInstanceProxyHandlers = {
 
 }
 
-const   initSlots = (instance,children) => {
+const initSlots = (instance,children) => {
   if(instance.vnode.shapeFlag & ShapeFlags.SLOTS_CHILDREN) {
     //将用户的插槽绑定到实例上
     instance.slots = children;
@@ -116,6 +115,7 @@ export function setupComponent(instance) {
     setCurrentInstance(instance)
     const setupResult = setup(instance.props, setupContext);
     setCurrentInstance(null)
+
     
     if(isFunction(setupResult)) {
       instance.render = setupResult
@@ -123,6 +123,8 @@ export function setupComponent(instance) {
       // 将返回结果作为数据源
       instance.setupState = proxyRef(setupResult)
     }
+
+
   }
 
   let data = type.data

@@ -29,7 +29,7 @@ export function reactive(target: Object){
 
     const proxy = new Proxy(target as Object, mutableHandlers)
     
-    reactiveMap.set(target,proxy);
+    reactiveMap.set(proxy, target);
 
     return proxy
 }

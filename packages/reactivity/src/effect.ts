@@ -19,7 +19,7 @@ export function effect(fn: () => any, options: any = {}) {
 export class ReactiveEffect<T = any> {
   active = true
   deps: any[] = []
-  parent: any[] | undefined
+  parent: any | undefined
   constructor(
     public fn: () => T,
     //@ts-ignore

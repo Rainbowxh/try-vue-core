@@ -217,8 +217,6 @@ export function createRenderer(options: any) {
     let s1 = i;
     let s2 = i;
 
-    console.log(i, e1, e2)
-
     const keyToNewIndexMap = new Map();
 
     for (let i = s2; i <= e2; i++) {
@@ -385,9 +383,6 @@ export function createRenderer(options: any) {
   }
 
   const setupRenderFn = (instance, container, anchor) => {
-
-    console.log(instance)
-
     const componentFn = () => {
       const { render,setup } = instance || {};
       const { bm,m,bu, u } = instance
@@ -397,7 +392,10 @@ export function createRenderer(options: any) {
           invokeArrayFn(bm);
         }
 
+
         const subTree = render.call(instance.proxy, instance.proxy)
+        
+        
         patch(null, subTree, container, anchor)
         instance.isMounted = true;
         instance.subTree = subTree
@@ -406,8 +404,9 @@ export function createRenderer(options: any) {
           invokeArrayFn(m);
         }
       } else {
-        console.log("doing?????")
+
         let { next } = instance
+
         // props update 或者插槽更新
         if(next) {
           // 更新props属性/更新插槽属性
@@ -419,9 +418,9 @@ export function createRenderer(options: any) {
         // 数据变化导致的更新  
         // update function
         // 需要拿到最新的属性和插槽到原来的实力上
+
         const subTree = render.call(instance.proxy);
         patch(instance.subTree, subTree, container)
-        instance.subTree = subTree;
 
         if(u) {
           invokeArrayFn(u);
@@ -467,6 +466,8 @@ export function createRenderer(options: any) {
    * finish update
    */
   const updateComponent = (n1, n2, container, anchor = null) => {
+
+
     if (n1 === n2) return;
 
     const instance = n2.component = n1.component
@@ -480,6 +481,7 @@ export function createRenderer(options: any) {
 
 
   const processComponent = (n1, n2, container) => {
+
     if (n1 === null) {
       // 组件的状态的更新 内部state的更新
       mountComponent(n2, container)

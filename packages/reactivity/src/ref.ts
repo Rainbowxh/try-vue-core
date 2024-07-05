@@ -111,9 +111,7 @@ export function proxyRef(objectWithRefs){
         return result[ReactiveFlags.IS_REF] ? result.value : result 
       },
       set(target,key,newValue,receiver) {
-
         const oldValue = target[key]
-        
         if(oldValue[ReactiveFlags.IS_REF]){
           oldValue.value = newValue;
           return true;

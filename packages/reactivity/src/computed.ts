@@ -31,7 +31,6 @@ class ComputedRefImpl<T> {
   set value(val) {
     this._setter(val);
   }
-
 }
 
 export function computed(getterOptions) {
