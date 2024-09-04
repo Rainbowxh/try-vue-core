@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script type="module">
+    import { effect, reactive } from "./dist/reactivity-v2.esm.js"
+
+    const num = reactive({ name: '123', age: 123 });
+
+    const effect1 = effect(() => {
+      let sum = num.name + num.age;
+      console.log('执行了effect1')
+    })
+
+    const effect2 = effect(() => {
+      let sum = num.name + num.age;
+      console.log('执行了effect2')
+    })
+
+    setTimeout(() => {
+      num.age = 1231233
+    },2000)
+  </script>  
+</body>
+</html>
