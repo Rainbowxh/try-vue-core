@@ -14,7 +14,7 @@ export function getCurrentInstance(){
 }
 
 
-export function createComponentInstance(vnode) {
+export function createComponentInstance(vnode, parent = null) {
   const instance = {
     data: null,
     isMounted: false,
@@ -27,10 +27,12 @@ export function createComponentInstance(vnode) {
     proxy: null,
     setupState: null,
     slots: {},
+    ctx: {},
+    emit: null,
     // lifecycle
     // event
   }
-
+  instance.ctx = { _: instance}
   return instance
 } 
 const publicProperties = {
@@ -54,7 +56,6 @@ const PublicInstanceProxyHandlers = {
       }
     },
     set(target, key, value, receiver) {
-
       let { data, props, setupState } = target
       if (hasOwn(data, key)) {
         data[key] = value
@@ -90,8 +91,9 @@ export function setupComponent(instance) {
    * instance.props        组件真实接受的属性列表   <component name='123' age='12' />
    */ 
   initProps(instance, props);
-  initSlots(instance, children);
+  
 
+  initSlots(instance, children);
 
   // create代理对象
   instance.proxy = new Proxy(instance, PublicInstanceProxyHandlers)
@@ -106,28 +108,36 @@ export function setupComponent(instance) {
       expose: (exposed) => {
         instance.exposed = exposed; //将当前的属性放在instances上面
       },
-      emit: (event,...args) => {
+      emit: (event, ...args) => {
         const eventName = `on${event[0].toUpperCase()}` + event.slice(1);
         const handler = instance.vnode.props[eventName];
-        handler(...args); 
+        if(isFunction(handler)) {
+          handler(...args); 
+        }else {
+          console.warn('Cannot find ', eventName, 'on component instance')
+        }
+
       }
     }
+
     setCurrentInstance(instance)
     const setupResult = setup(instance.props, setupContext);
     setCurrentInstance(null)
-
     
     if(isFunction(setupResult)) {
       instance.render = setupResult
     } else {
-      // 将返回结果作为数据源
-      instance.setupState = proxyRef(setupResult)
+      if(setupResult !== null && typeof setupResult === 'object') {
+        // 将返回结果作为数据源
+        instance.setupState = proxyRef(setupResult)
+      }else {
+        console.error('setup must return an object or a function')
+      }
     }
-
-
   }
 
   let data = type.data
+
   if(type.data){
     if(isFunction(data)){
       instance.data = reactive(data());
@@ -136,4 +146,5 @@ export function setupComponent(instance) {
 
   // 用户写的render作为实例的render
   instance.render = instance.render ?? type.render;
+
 }

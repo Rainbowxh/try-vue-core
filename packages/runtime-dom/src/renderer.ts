@@ -7,7 +7,7 @@ import { ShapeFlags,
    initProps, 
    createComponentInstance, 
    setupComponent } from "@vue/runtime-core"
-import { invokeArrayFn } from "@vue/shared"
+import { invokeArrayFn, isFunction } from "@vue/shared"
 
 export function createRenderer(options: any) {
 
@@ -384,7 +384,8 @@ export function createRenderer(options: any) {
 
   const setupRenderFn = (instance, container, anchor) => {
     const componentFn = () => {
-      const { render,setup } = instance || {};
+      const { render } = instance || {};
+
       const { bm,m,bu, u } = instance
       if (!instance.isMounted) {
 
@@ -392,10 +393,8 @@ export function createRenderer(options: any) {
           invokeArrayFn(bm);
         }
 
-
         const subTree = render.call(instance.proxy, instance.proxy)
-        
-        
+
         patch(null, subTree, container, anchor)
         instance.isMounted = true;
         instance.subTree = subTree
