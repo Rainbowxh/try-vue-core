@@ -7,22 +7,22 @@
 </head>
 <body>
   <script type="module">
-    import { effect, reactive } from "./dist/reactivity-v2.esm.js"
+    import { effect, reactive, computed } from "./dist/reactivity-v2.esm.js"
 
-    const num = reactive({ name: '123', age: 123 });
+    const t = reactive({ age: 123 , atk: 12});
 
-    const effect1 = effect(() => {
-      let sum = num.name + num.age;
-      console.log('执行了effect1')
+    const c = computed(() => {
+      return t.age + "+" + t.atk
     })
 
-    const effect2 = effect(() => {
-      let sum = num.name + num.age;
-      console.log('执行了effect2')
+    effect(() => {
+      const v = c.value;
+      console.log(v)
     })
 
     setTimeout(() => {
-      num.age = 1231233
+      t.age = '123123'
+      console.log(c.value)
     },2000)
   </script>  
 </body>

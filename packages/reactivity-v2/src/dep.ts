@@ -1,6 +1,7 @@
-import { activeSub, batchedEffect } from "./effect";
+import { activeSub, batchedEffect, EffectFlags, endBatch, startBatch } from "./effect";
 
 export let targetMap = new WeakMap();
+
 
 export class Dep {
   version = 0;
@@ -53,6 +54,7 @@ export class Dep {
   }
   
   notify() {
+    startBatch();
     /**
      * 由于是从尾部开始遍历的，所以执行顺序不能够保证，需要倒序当前链表
      * 先通知当前所有订阅的列表要更新
@@ -61,17 +63,12 @@ export class Dep {
     for(let tail = this.subs; !!tail; tail = tail.prevSub) {
       tail.sub.notify();
     }
-
-    let e = batchedEffect
-
-    while(e) {
-      const next = e.nextEffect
-      e.trigger();
-      e.nextEffect = undefined
-      e = next
-    }
+    endBatch();
   }
 }
+
+
+
 
 export function track(target: object, key) {
   if(!activeSub) {
@@ -98,8 +95,9 @@ export function trigger(target, key) {
   // to-do
 
   const dep = depsMap.get(key);
-
+  startBatch()
   dep.trigger();
+  endBatch();
 }
 
 

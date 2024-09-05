@@ -7,19 +7,21 @@
   "scripts": {
     "dev": "node scripts/dev.js reactivity -f esm",
     "devRuntime": "node scripts/dev.js runtime-dom -f esm",
-    "devCore": "node scripts/dev.js runtime-core -f esm"
+    "devCore": "node scripts/dev.js runtime-core -f esm",
+    "devReactivity": "node scripts/dev.js reactivity-v2 -f esm"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@vue/reactivity": "^3.4.23",
     "vue": "^3.4.23"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
+    "@vue/reactivity": "^3.5.1",
     "esbuild": "^0.20.2",
     "minimist": "^1.2.8",
-    "typecript": "0.0.1-security"
+    "typecript": "0.0.1-security",
+    "vueReactivity": "npm:@vue/reactivity@3.5.1"
   }
 }
